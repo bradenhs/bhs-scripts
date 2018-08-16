@@ -7,26 +7,25 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Serve",
-      "args": ["${workspaceFolder}/node_modules/bhs-scripts/out/serve.js"],
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["node-dev", "--no-notify"],
+      "name": "Serve Application",
+      "program": "${workspaceFolder}/node_modules/bhs-scripts/bin/serve.js",
       "env": {
         "CLIENT_PORT": "4444",
         "SERVER_PORT": "4445",
         "WEB_SOCKET_PORT": "4446",
         "SERVER_DEBUG_PORT": "4447"
-      },
-      "restart": true,
-      "smartStep": true
+      }
     },
     {
       "type": "chrome",
       "name": "Debug Client",
       "request": "launch",
       "url": "http://localhost:4444",
-      "webRoot": "${workspaceFolder}/public",
-      "smartStep": true
+      "smartStep": true,
+      "webRoot": "${workspaceFolder}",
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${workspaceRoot}/*"
+      }
     },
     {
       "type": "node",
@@ -41,7 +40,7 @@
   "compounds": [
     {
       "name": "Launch",
-      "configurations": ["Serve", "Debug Client", "Debug Server"]
+      "configurations": ["Serve Application", "Debug Client", "Debug Server"]
     }
   ]
 }

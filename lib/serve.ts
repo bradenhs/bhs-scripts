@@ -1,11 +1,12 @@
 import { utimes } from "fs";
 import { spawn } from "child_process";
-import * as ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
-import * as ForkTsCheckerNotifierWebpackPlugin from "fork-ts-checker-notifier-webpack-plugin";
-import * as WebSocket from "ws";
-import { Configuration, DefinePlugin } from "webpack";
-import * as path from "path";
 import * as serve from "webpack-serve";
+import { getWebpackConfig } from "./getWebpackConfig";
+import {
+  CLIENT_ENTRY_POINT,
+  SERVER_ENTRY_POINT,
+  SERVER_STARTED_SIGNAL
+} from "./constants";
 
 export function main() {
   const clientPort = parseInt(process.env.CLIENT_PORT || "4444", 10);
@@ -20,18 +21,16 @@ export function main() {
     clientPort,
     webSocketPort,
     serverPort,
-    serverDebugPort === undefined /* shouldOpenBrowser */
+    typeof serverDebugPort === "number" /* debug */
   );
-
-  console.log("OPEN IT");
 }
 
 function startServer(serverPort: number, serverDebugPort?: number) {
   const startArgs = ["--no-notify", "--transpileOnly"];
-  const endArgs = ["./server/index.ts"];
+  const endArgs = [SERVER_ENTRY_POINT];
 
   const child = spawn(
-    "ts-node-dev",
+    "./node_modules/.bin/ts-node-dev",
     typeof serverDebugPort === "number"
       ? [...startArgs, `--inspect-brk=${serverDebugPort}`, ...endArgs]
       : [...startArgs, ...endArgs],
@@ -47,10 +46,10 @@ function startServer(serverPort: number, serverDebugPort?: number) {
   let firstServerStart = true;
 
   child.stdout.on("data", data => {
-    if (data.toString().trim() === "SERVER_STARTED") {
+    if (data.toString().trim() === SERVER_STARTED_SIGNAL) {
       if (!firstServerStart) {
         // Modify this file to force the client to reload.
-        utimes("./client/index.ts", new Date(), new Date(), error => {
+        utimes(CLIENT_ENTRY_POINT, new Date(), new Date(), error => {
           if (error) {
             throw error;
           }
@@ -72,83 +71,18 @@ function startClient(
   clientPort: number,
   webSocketPort: number,
   serverPort: number,
-  shouldOpenBrowser: boolean
+  debug: boolean
 ) {
-  let reloadPage: Function | undefined;
-
-  const config: Configuration = {
-    entry: "./client/index.ts",
+  const config = getWebpackConfig({
     mode: "development",
+    publicPath: "/dist/client/",
+    apiServerLocation: `http://localhost:${serverPort}`,
     serve: {
-      content: "./public",
-      clipboard: false,
-      open: shouldOpenBrowser,
-      devMiddleware: {
-        publicPath: "/dist"
-      },
-      hotClient: {
-        hmr: false,
-        reload: false,
-        host: "localhost",
-        port: webSocketPort
-      },
-      port: clientPort,
-      on: {
-        listening({ server }) {
-          const socket = new WebSocket(`ws://localhost:${webSocketPort}`);
-
-          reloadPage = () => {
-            const data = {
-              type: "broadcast",
-              data: {
-                type: "window-reload",
-                data: {}
-              }
-            };
-
-            socket.send(JSON.stringify(data));
-          };
-
-          server.on("close", () => {
-            socket.close();
-          });
-        },
-        "build-finished": () => {
-          if (reloadPage) {
-            reloadPage();
-          }
-        }
-      }
-    },
-    plugins: [
-      new ForkTsCheckerWebpackPlugin(),
-      new ForkTsCheckerNotifierWebpackPlugin(),
-      new DefinePlugin({
-        "process.env": {
-          API_SERVER_LOCATION: JSON.stringify(`http://localhost:${serverPort}`)
-        }
-      })
-    ],
-    output: {
-      path: path.resolve("./public/dist"),
-      publicPath: "/dist",
-      filename: "index.js"
-    },
-    resolve: {
-      extensions: [".ts", ".tsx", ".js"]
-    },
-    module: {
-      rules: [
-        {
-          test: /\.tsx?$/,
-          loader: "ts-loader",
-          options: {
-            transpileOnly: true
-          }
-        }
-      ]
+      webSocketPort,
+      clientPort,
+      debug
     }
-  };
+  });
 
   serve({}, { config });
 }
