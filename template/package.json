@@ -3,7 +3,7 @@
   "dependencies": {
     "@types/react": "^16.4.11",
     "@types/react-dom": "^16.0.7",
-    "bhs-scripts": "0.0.3",
+    "bhs-scripts": "0.0.7",
     "mobx": "^4.3.1",
     "mobx-react": "^5.2.5",
     "react": "^16.4.2",
