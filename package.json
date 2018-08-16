@@ -1,6 +1,6 @@
 {
   "name": "bhs-scripts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Helper scripts for TypeScript Node/React development",
   "main": "out/main.js",
   "repository": {
