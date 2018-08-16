@@ -7,10 +7,20 @@
     "type": "git",
     "url": "git+https://github.com/bradenhs/bhs-scripts.git"
   },
+  "scripts": {
+    "clean": "rm -rf out",
+    "prebuild": "npm run clean",
+    "build": "tsc --project tsconfig.json",
+    "prepublish": "npm run build"
+  },
+  "bin": {
+    "bhs-launch": "./bin/launch.js"
+  },
   "author": "Braden Snell",
   "license": "MIT",
   "dependencies": {
     "prettier": "^1.14.2",
+    "tslib": "^1.9.3",
     "tslint": "^5.11.0",
     "typescript": "^3.0.1"
   }
