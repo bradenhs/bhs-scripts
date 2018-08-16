@@ -7,6 +7,7 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "node_modules": true,
-    "template/node_modules": false
+    "template/node_modules": true,
+    "out": true
   }
 }
