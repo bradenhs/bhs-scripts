@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 import * as ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import * as ForkTsCheckerNotifierWebpackPlugin from "fork-ts-checker-notifier-webpack-plugin";
 import * as WebSocket from "ws";
-import { Configuration } from "webpack";
+import { Configuration, DefinePlugin } from "webpack";
 import * as path from "path";
 import * as serve from "webpack-serve";
 
@@ -16,7 +16,14 @@ export function main() {
     : undefined;
 
   startServer(serverPort, serverDebugPort);
-  startClient(clientPort, webSocketPort);
+  startClient(
+    clientPort,
+    webSocketPort,
+    serverPort,
+    serverDebugPort === undefined /* shouldOpenBrowser */
+  );
+
+  console.log("OPEN IT");
 }
 
 function startServer(serverPort: number, serverDebugPort?: number) {
@@ -29,9 +36,7 @@ function startServer(serverPort: number, serverDebugPort?: number) {
       ? [...startArgs, `--inspect-brk=${serverDebugPort}`, ...endArgs]
       : [...startArgs, ...endArgs],
     {
-      env: {
-        PORT: serverPort.toString()
-      }
+      env: { ...process.env, PORT: serverPort.toString() }
     }
   );
 
@@ -46,7 +51,9 @@ function startServer(serverPort: number, serverDebugPort?: number) {
       if (!firstServerStart) {
         // Modify this file to force the client to reload.
         utimes("./client/index.ts", new Date(), new Date(), error => {
-          throw error;
+          if (error) {
+            throw error;
+          }
         });
       }
 
@@ -61,7 +68,12 @@ function startServer(serverPort: number, serverDebugPort?: number) {
   });
 }
 
-function startClient(clientPort: number, webSocketPort: number) {
+function startClient(
+  clientPort: number,
+  webSocketPort: number,
+  serverPort: number,
+  shouldOpenBrowser: boolean
+) {
   let reloadPage: Function | undefined;
 
   const config: Configuration = {
@@ -70,6 +82,10 @@ function startClient(clientPort: number, webSocketPort: number) {
     serve: {
       content: "./public",
       clipboard: false,
+      open: shouldOpenBrowser,
+      devMiddleware: {
+        publicPath: "/dist"
+      },
       hotClient: {
         hmr: false,
         reload: false,
@@ -106,12 +122,16 @@ function startClient(clientPort: number, webSocketPort: number) {
     },
     plugins: [
       new ForkTsCheckerWebpackPlugin(),
-      new ForkTsCheckerNotifierWebpackPlugin()
+      new ForkTsCheckerNotifierWebpackPlugin(),
+      new DefinePlugin({
+        "process.env": {
+          API_SERVER_LOCATION: JSON.stringify(`http://localhost:${serverPort}`)
+        }
+      })
     ],
     output: {
-      pathinfo: false,
       path: path.resolve("./public/dist"),
-      publicPath: "dist",
+      publicPath: "/dist",
       filename: "index.js"
     },
     resolve: {

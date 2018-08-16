@@ -1,6 +1,6 @@
 {
   "name": "bhs-scripts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Helper scripts for TypeScript Node/React development",
   "main": "index.js",
   "repository": {
@@ -14,8 +14,14 @@
     "prepublish": "npm run build"
   },
   "bin": {
-    "bhs-dev": "./bin/dev.js"
+    "serve": "./bin/serve.js"
   },
+  "files": [
+    "bin",
+    "configs",
+    "out",
+    "template"
+  ],
   "author": "Braden Snell",
   "license": "MIT",
   "dependencies": {
@@ -25,6 +31,7 @@
     "@types/ws": "^6.0.0",
     "fork-ts-checker-notifier-webpack-plugin": "^0.4.0",
     "fork-ts-checker-webpack-plugin": "^0.4.8",
+    "node-dev": "^3.1.3",
     "prettier": "^1.14.2",
     "ts-loader": "^4.4.2",
     "ts-node": "^7.0.1",

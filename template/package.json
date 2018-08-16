@@ -1,4 +1,6 @@
 {
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "bhs-scripts": "0.0.2"
+  }
 }

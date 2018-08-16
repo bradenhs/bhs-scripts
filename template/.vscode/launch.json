@@ -1,0 +1,47 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Serve",
+      "args": ["${workspaceFolder}/node_modules/bhs-scripts/out/serve.js"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["node-dev", "--no-notify"],
+      "env": {
+        "CLIENT_PORT": "4444",
+        "SERVER_PORT": "4445",
+        "WEB_SOCKET_PORT": "4446",
+        "SERVER_DEBUG_PORT": "4447"
+      },
+      "restart": true,
+      "smartStep": true
+    },
+    {
+      "type": "chrome",
+      "name": "Debug Client",
+      "request": "launch",
+      "url": "http://localhost:4444",
+      "webRoot": "${workspaceFolder}/public",
+      "smartStep": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Debug Server",
+      "smartStep": true,
+      "restart": true,
+      "stopOnEntry": false,
+      "port": 4447
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch",
+      "configurations": ["Serve", "Debug Client", "Debug Server"]
+    }
+  ]
+}
